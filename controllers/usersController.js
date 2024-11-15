@@ -1,4 +1,5 @@
 const usersModel = require('../models/usersmodel');
+const bcrypt = require('bcrypt');
 
 const getUsers = (req, res) => {
     usersModel.getAllUsers()
@@ -8,6 +9,7 @@ const getUsers = (req, res) => {
             res.status(500).json({ message: 'Erro ao buscar usuários' });
         });
 };
+
 
 module.exports = {
     getUsers
