@@ -7,6 +7,9 @@ const usersRoutes = require('./routes/usersRoutes');
 const freteRoutes = require('./routes/freteRoutes'); 
 const comentarioRouter = require('./routes/comentarioRouter');
 const authRoutes = require('./routes/authRoutes');
+const path = require('path')
+
+
 
 const app = express();
 app.use(bodyParser.json());
