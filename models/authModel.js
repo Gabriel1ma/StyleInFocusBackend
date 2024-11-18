@@ -1,5 +1,5 @@
 const pool = require('../config/database');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs'); // Substituindo o bcrypt por bcryptjs
 const crypto = require('crypto');
 
 const User = {
@@ -8,7 +8,7 @@ const User = {
         return result.rows[0];
     },
     create: async (username, email, password, profileImage) => {
-        const hashedPassword = await bcrypt.hash(password, 10);
+        const hashedPassword = await bcrypt.hash(password, 10); // Usando bcryptjs
         const result = await pool.query(
             'INSERT INTO users (username, email, password, profile_image) VALUES ($1, $2, $3, $4) RETURNING *',
             [username, email, hashedPassword, profileImage]
@@ -17,7 +17,7 @@ const User = {
     },
     update: async (userId, username, email, password, profileImage) => {
         if (password) {
-            const hashedPassword = await bcrypt.hash(password, 10);
+            const hashedPassword = await bcrypt.hash(password, 10); // Usando bcryptjs
             await pool.query('UPDATE users SET password = $1 WHERE user_id = $2', [hashedPassword, userId]);
         }
         if (profileImage) {
@@ -30,11 +30,11 @@ const User = {
         return result.rows[0];
     },
     setResetToken: async (email, token) => {
-        const expiration = new Date(Date.now() + 3600000); // 1 hour
+        const expiration = new Date(Date.now() + 3600000); // 1 hora
         await pool.query('UPDATE users SET reset_token = $1, reset_token_expiration = $2 WHERE email = $3', [token, expiration, email]);
     },
     resetPassword: async (token, newPassword) => {
-        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        const hashedPassword = await bcrypt.hash(newPassword, 10); // Usando bcryptjs
         await pool.query('UPDATE users SET password = $1, reset_token = NULL, reset_token_expiration = NULL WHERE reset_token = $2', [hashedPassword, token]);
     }
 };

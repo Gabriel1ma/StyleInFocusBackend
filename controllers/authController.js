@@ -1,5 +1,5 @@
 const User = require('../models/authModel');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs'); // Substituindo bcrypt por bcryptjs
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
 
@@ -31,7 +31,7 @@ const authController = {
             if (!user) {
                 return res.status(401).json({ success: false, errors: { email: 'E-mail inválido.' } });
             }
-            const match = await bcrypt.compare(password, user.password);
+            const match = await bcrypt.compare(password, user.password); // Usando bcryptjs
             if (match) {
                 req.session.userId = user.user_id;
                 req.session.username = user.username;
@@ -106,7 +106,7 @@ const authController = {
         try {
             const userId = req.session.userId;
             const user = await User.findByEmail(email);
-            const isPasswordMatch = await bcrypt.compare(senhaAtual, user.password);
+            const isPasswordMatch = await bcrypt.compare(senhaAtual, user.password); // Usando bcryptjs
             if (!isPasswordMatch) {
                 return res.status(401).json({ success: false, message: "Senha atual incorreta." });
             }
