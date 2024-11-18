@@ -1,4 +1,5 @@
 const express = require('express');
+const session = require('express-session'); // Adicione esta linha para importar o session
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const camisasRoutes = require('./routes/camisasRoutes');
