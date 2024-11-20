@@ -1,48 +1,65 @@
 const express = require('express');
-const session = require('express-session'); // Adicione esta linha para importar o session
 const bodyParser = require('body-parser');
+const jwt = require('jsonwebtoken');
 const cors = require('cors');
+const authRoutes = require('./routes/authRoutes');
+const path = require('path');
 const camisasRoutes = require('./routes/camisasRoutes');
 const usersRoutes = require('./routes/usersRoutes');
-const freteRoutes = require('./routes/freteRoutes'); 
+const freteRoutes = require('./routes/freteRoutes');
 const comentarioRouter = require('./routes/comentarioRouter');
-const authRoutes = require('./routes/authRoutes');
-const path = require('path')
-
-
 
 const app = express();
-app.use(bodyParser.json());
-app.use(cors());
+const SECRET_KEY = 'sua-chave-secreta'; 
 
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(session({
-    secret: 'seu-segredo',      // Chave secreta para assinatura do ID da sessão
-    resave: false,              // Impede que a sessão seja salva em cada requisição, mesmo sem alterações
-    saveUninitialized: false,   // Não salva sessões não modificadas
-    cookie: {
-        maxAge: 1000 * 60 * 60 * 24  // Sessão dura 1 dia (24 horas)
-    }
+app.use(cors({
+    origin: 'https://styleinfocusfrontend.onrender.com',  // Substitua pelo URL do seu frontend
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization']
 }));
-app.use(authRoutes);
+
+// Middleware de autenticação
+const authenticateToken = (req, res, next) => {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+
+    if (!token) {
+        return res.status(401).json({ success: false, message: 'Token não fornecido.' });
+    }
+
+    jwt.verify(token, SECRET_KEY, (err, user) => {
+        if (err) {
+            return res.status(403).json({ success: false, message: 'Token inválido ou expirado.' });
+        }
+        req.user = user; // Adiciona o usuário ao request
+        next();
+    });
+};
 
 // Configuração de arquivos estáticos
 app.use('/uploads', express.static(path.join(__dirname, '/frontend/paginas/login/uploads')));
 app.use(express.static(path.join(__dirname, 'frontend')));
 
-// Rota padrão para a página inicial ou outras páginas
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'frontend/'));  // Redireciona para a página de login
-});
-
+// Rotas
 app.use('/auth', authRoutes);
-app.use('/camisas', camisasRoutes);  
-app.use('/users', usersRoutes);  
+app.use('/camisas', camisasRoutes);
+app.use('/users', usersRoutes);
 app.use('/frete', freteRoutes);
 app.use('/api/roupas', comentarioRouter);
 
+// Protegendo uma rota
+app.get('/users/me', authenticateToken, (req, res) => {
+    res.json({ success: true, user: req.user });
+});
 
-app.listen(3000, () => {
-    console.log('Servidor rodando na porta 3000');
+// Rota padrão
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'frontend/index.html'));
+});
+
+// Servidor
+const PORT = 3000;
+app.listen(PORT, () => {
+    console.log(`Servidor rodando na porta ${PORT}`);
 });

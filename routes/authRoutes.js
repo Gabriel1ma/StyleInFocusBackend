@@ -16,6 +16,33 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage: storage });
+const authenticateToken = (req, res, next) => {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];  // "Bearer <token>"
+
+    if (!token) {
+        return res.status(401).json({ message: 'Token não fornecido.' });
+    }
+
+    jwt.verify(token, process.env.JWT_SECRET_KEY, (err, user) => {
+        if (err) {
+            return res.status(403).json({ message: 'Token inválido ou expirado.' });
+        }
+        req.user = user;  // Armazenando a informação do usuário decodificada
+        next();
+    });
+};
+
+// Rota de verificação de sessão
+router.get('/check-session', authenticateToken, (req, res) => {
+    return res.json({
+        authenticated: true,
+        user: {
+            username: req.user.username || 'Usuário Desconhecido',
+            profileImage: req.user.profileImage || '/uploads/usuarioDefault.jpg'
+        }
+    });
+});
 
 // Rotas
 router.post('/register', upload.single('profile_image'), authController.register);
@@ -24,29 +51,9 @@ router.post('/forgot-password', authController.forgotPassword);
 router.post('/reset-password', authController.resetPassword);
 router.post('/update', upload.single('profile_image'), authController.update);
 
-router.get('/check-session', (req, res) => {
-    if (req.session.userId) {
-        return res.json({
-            authenticated: true, // Retorna que o usuário está autenticado
-            user: {
-                username: req.session.username,
-                profileImage: req.session.profileImage
-            }
-        });
-    } else {
-        return res.status(401).json({
-            authenticated: false, // Retorna que o usuário não está autenticado
-            message: 'Usuário não autenticado.'
-        });
-    }
-});
-
-router.get('/api/user', (req, res) => {
-    if (!req.session.userId) {
-        return res.status(401).json({ success: false, message: "Usuário não autenticado" });
-    }
-
-    pool.query('SELECT username, email, profile_image FROM users WHERE user_id = $1', [req.session.userId], (err, results) => {
+// Rota de API para pegar dados do usuário
+router.get('/api/user', authenticateToken, (req, res) => {
+    pool.query('SELECT username, email, profile_image FROM users WHERE user_id = $1', [req.user.userId], (err, results) => {
         if (err) {
             return res.status(500).json({ success: false, message: "Erro ao buscar dados do usuário" });
         }
@@ -64,5 +71,6 @@ router.get('/api/user', (req, res) => {
         });
     });
 });
+
 
 module.exports = router;

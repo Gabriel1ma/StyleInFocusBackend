@@ -1,7 +1,11 @@
 const User = require('../models/authModel');
 const bcrypt = require('bcryptjs'); // Substituindo bcrypt por bcryptjs
+const jwt = require('jsonwebtoken'); // Para trabalhar com tokens
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
+
+const JWT_SECRET = "sua_chave_secreta"; // Altere para uma chave segura e armazene em variáveis de ambiente!
+
 
 const authController = {
     async register(req, res) {
@@ -26,26 +30,41 @@ const authController = {
 
     async login(req, res) {
         const { email, password } = req.body;
+    
         try {
             const user = await User.findByEmail(email);
             if (!user) {
-                return res.status(401).json({ success: false, errors: { email: 'E-mail inválido.' } });
+                return res.status(401).json({ success: false, message: 'Credenciais inválidas.' });
             }
-            const match = await bcrypt.compare(password, user.password); // Usando bcryptjs
-            if (match) {
-                req.session.userId = user.user_id;
-                req.session.username = user.username;
-                req.session.profileImage = user.profile_image;
-                const profileImagePath = user.profile_image ? `/paginas/login/uploads/${user.profile_image}` : 'paginas/login/uploads/usuarioDefault.jpg';
-                return res.json({ success: true, message: "Login bem-sucedido!", redirect: 'userLogado.html', profileImagePath, username: user.username });
-            } else {
-                return res.status(401).json({ success: false, errors: { password: 'Senha incorreta.' } });
+    
+            const match = await bcrypt.compare(password, user.password);
+            if (!match) {
+                return res.status(401).json({ success: false, message: 'Credenciais inválidas.' });
             }
+    
+            // Gerar token JWT com informações do usuário
+            const token = jwt.sign(
+                { userId: user.user_id, username: user.username },
+                SECRET_KEY,
+                { expiresIn: '15m' } // Expira em 15 minutos
+            );
+    
+            const profileImagePath = user.profile_image
+                ? `/paginas/login/uploads/${user.profile_image}`
+                : '/paginas/login/uploads/usuarioDefault.jpg';
+    
+            return res.json({
+                success: true,
+                message: 'Login bem-sucedido!',
+                token,
+                profileImagePath,
+                username: user.username
+            });
         } catch (error) {
-            console.error('Erro ao fazer login:', error);
-            res.status(500).json({ success: false, message: "Erro ao fazer login." });
+            console.error('Erro ao fazer login:', error.message);
+            res.status(500).json({ success: false, message: 'Erro interno no servidor.' });
         }
-    },
+    },    
 
     async forgotPassword(req, res) {
         const { email } = req.body;
@@ -99,14 +118,20 @@ const authController = {
 
     async update(req, res) {
         const { username, email, senhaAtual, novaSenha, confirmacaoNovaSenha } = req.body;
-        if (!req.session.userId) {
+
+        // Obter o token do cabeçalho de autorização
+        const token = req.headers.authorization?.split(' ')[1];
+        if (!token) {
             return res.status(401).json({ success: false, message: "Não autenticado." });
         }
 
         try {
-            const userId = req.session.userId;
+            // Verificar o token JWT
+            const decoded = jwt.verify(token, JWT_SECRET);
+            const userId = decoded.userId;
+
             const user = await User.findByEmail(email);
-            const isPasswordMatch = await bcrypt.compare(senhaAtual, user.password); // Usando bcryptjs
+            const isPasswordMatch = await bcrypt.compare(senhaAtual, user.password);
             if (!isPasswordMatch) {
                 return res.status(401).json({ success: false, message: "Senha atual incorreta." });
             }
@@ -117,10 +142,7 @@ const authController = {
                 await User.update(userId, username, email, null, req.file ? '/paginas/login/uploads/' + req.file.filename : null);
             }
 
-            req.session.username = username;
-            req.session.profileImage = user.profile_image;
-
-            res.redirect('/paginas/login/userEdited.html');
+            res.json({ success: true, message: "Perfil atualizado com sucesso." });
         } catch (error) {
             console.error('Erro ao atualizar perfil:', error);
             res.status(500).json({ success: false, message: "Erro ao atualizar perfil." });
