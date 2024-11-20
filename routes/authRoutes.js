@@ -4,6 +4,7 @@ const router = express.Router();
 const pool = require('../config/database');
 const multer = require('multer');
 const path = require('path');
+const jwt = require('jsonwebtoken');
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
