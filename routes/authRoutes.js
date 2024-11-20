@@ -17,6 +17,8 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage: storage });
+
+
 const authenticateToken = (req, res, next) => {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];  // "Bearer <token>"
@@ -25,9 +27,9 @@ const authenticateToken = (req, res, next) => {
         return res.status(401).json({ message: 'Token não fornecido.' });
     }
 
-    jwt.verify(token, process.env.JWT_SECRET_KEY, (err, user) => {
+    jwt.verify(token, SECRET_KEY, (err, decoded) => {
         if (err) {
-            return res.status(403).json({ message: 'Token inválido ou expirado.' });
+            return res.status(401).json({ message: 'Token inválido ou expirado' });
         }
         req.user = user;  // Armazenando a informação do usuário decodificada
         next();
