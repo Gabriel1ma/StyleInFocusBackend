@@ -67,7 +67,7 @@ const authController = {
                 username: user.username
             });
         } catch (error) {
-            console.error('Erro ao fazer login:', error.message);
+            console.error('Erro interno no servidor:', error); // Log detalhado
             return res.status(500).json({ success: false, message: 'Erro interno no servidor.' });
         }
     },
