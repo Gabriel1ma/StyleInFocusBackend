@@ -143,9 +143,9 @@ const authController = {
             }
 
             if (novaSenha && novaSenha === confirmacaoNovaSenha) {
-                await User.update(userId, username, email, novaSenha, req.file ? '/paginas/login/uploads/' + req.file.filename : null);
+                await User.update(userId, username, email, novaSenha, req.file ? 'frontend/paginas/login/uploads/' + req.file.filename : null);
             } else {
-                await User.update(userId, username, email, null, req.file ? '/paginas/login/uploads/' + req.file.filename : null);
+                await User.update(userId, username, email, null, req.file ? 'frontend/paginas/login/uploads/' + req.file.filename : null);
             }
 
             res.json({ success: true, message: "Perfil atualizado com sucesso." });
