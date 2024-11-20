@@ -10,7 +10,7 @@ const SECRET_KEY = "sua_chave_secreta"; // Altere para uma chave segura e armaze
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, path.join(__dirname, '../../frontend/paginas/login/uploads'));
+        cb(null, path.join(__dirname, '../uploads'));
     },
     filename: (req, file, cb) => {
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
@@ -57,7 +57,7 @@ router.post('/register', upload.single('profile_image'), authController.register
 router.post('/login', authController.login);
 router.post('/forgot-password', authController.forgotPassword);
 router.post('/reset-password', authController.resetPassword);
-router.post('/update', upload.single('profile_image'), authController.update);
+router.post('/update', upload.single('profile_image'), authenticateToken, authController.update);
 
 // Rota de API para pegar dados do usuário
 router.get('/api/user', authenticateToken, (req, res) => {

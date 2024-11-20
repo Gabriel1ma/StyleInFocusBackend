@@ -19,7 +19,7 @@ const authController = {
                 return res.status(400).json({ success: false, message: "E-mail já cadastrado." });
             }
 
-            const profileImage = req.file ? 'frontend/paginas/login/uploads/' + req.file.filename : null;
+            const profileImage = req.file ? 'uploads/' + req.file.filename : null;
             await User.create(username, email, password, profileImage);
             res.json({ success: true, message: "Usuário cadastrado com sucesso." });
         } catch (error) {
@@ -56,8 +56,8 @@ const authController = {
             console.log('Token gerado:', token);
     
             const profileImagePath = user.profile_image
-                ? `frontend/paginas/login/uploads/${user.profile_image}`
-                : 'frontend/paginas/login/uploads/usuarioDefault.jpg';
+                ? `uploads/${user.profile_image}`
+                : 'uploads/usuarioDefault.jpg';
     
             return res.json({
                 success: true,
@@ -124,30 +124,36 @@ const authController = {
 
     async update(req, res) {
         const { username, email, senhaAtual, novaSenha, confirmacaoNovaSenha } = req.body;
-
-        // Obter o token do cabeçalho de autorização
+    
         const token = req.headers.authorization?.split(' ')[1];
+    
         if (!token) {
             return res.status(401).json({ success: false, message: "Não autenticado." });
         }
-
+    
         try {
             // Verificar o token JWT
-            const decoded = jwt.verify(token, JWT_SECRET);
+            const decoded = jwt.verify(token, SECRET_KEY);
             const userId = decoded.userId;
-
+    
             const user = await User.findByEmail(email);
             const isPasswordMatch = await bcrypt.compare(senhaAtual, user.password);
+    
             if (!isPasswordMatch) {
                 return res.status(401).json({ success: false, message: "Senha atual incorreta." });
             }
-
-            if (novaSenha && novaSenha === confirmacaoNovaSenha) {
-                await User.update(userId, username, email, novaSenha, req.file ? 'frontend/paginas/login/uploads/' + req.file.filename : null);
-            } else {
-                await User.update(userId, username, email, null, req.file ? 'frontend/paginas/login/uploads/' + req.file.filename : null);
+    
+            let filePath = null;
+            if (req.file) {
+                filePath = 'uploads/' + req.file.filename;
             }
-
+    
+            if (novaSenha && novaSenha === confirmacaoNovaSenha) {
+                await User.update(userId, username, email, novaSenha, filePath);
+            } else {
+                await User.update(userId, username, email, null, filePath);
+            }
+    
             res.json({ success: true, message: "Perfil atualizado com sucesso." });
         } catch (error) {
             console.error('Erro ao atualizar perfil:', error);
@@ -155,5 +161,4 @@ const authController = {
         }
     }
 };
-
 module.exports = authController;

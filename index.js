@@ -34,7 +34,6 @@ const authenticateToken = (req, res, next) => {
 };
 
 // Configuração de arquivos estáticos
-app.use('/uploads', express.static(path.join(__dirname, '/frontend/paginas/login/uploads')));
 app.use(express.static(path.join(__dirname, 'frontend')));
 
 // Rotas
@@ -43,6 +42,7 @@ app.use('/camisas', camisasRoutes);
 app.use('/users', usersRoutes);
 app.use('/frete', freteRoutes);
 app.use('/api/roupas', comentarioRouter);
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Protegendo uma rota
 app.get('/users/me', authenticateToken, (req, res) => {
