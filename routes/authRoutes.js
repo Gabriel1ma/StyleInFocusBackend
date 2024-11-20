@@ -20,10 +20,9 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-
 const authenticateToken = (req, res, next) => {
     const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];  // "Bearer <token>"
+    const token = authHeader && authHeader.split(' ')[1];  // Extrai o token após "Bearer"
 
     if (!token) {
         return res.status(401).json({ message: 'Token não fornecido.' });
@@ -33,7 +32,12 @@ const authenticateToken = (req, res, next) => {
         if (err) {
             return res.status(401).json({ message: 'Token inválido ou expirado' });
         }
-        return res.status(200).json({ message: 'Sessão válida', user: decoded });
+
+        // Armazena os dados do token no objeto req para uso posterior
+        req.user = decoded;
+
+        // Passa o controle para o próximo middleware ou rota
+        next();
     });
 };
 
