@@ -33,8 +33,7 @@ const authenticateToken = (req, res, next) => {
         if (err) {
             return res.status(401).json({ message: 'Token inválido ou expirado' });
         }
-        req.user = user;  // Armazenando a informação do usuário decodificada
-        next();
+        return res.status(200).json({ message: 'Sessão válida', user: decoded });
     });
 };
 
