@@ -13,11 +13,7 @@ const app = express();
 const SECRET_KEY = 'sua-chave-secreta'; 
 
 app.use(bodyParser.json());
-app.use(cors({
-    origin: 'https://styleinfocusfrontend.onrender.com',  // Substitua pelo URL do seu frontend
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization']
-}));
+app.use(cors());
 
 // Middleware de autenticação
 const authenticateToken = (req, res, next) => {
