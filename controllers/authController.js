@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken'); // Para trabalhar com tokens
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
 
-const JWT_SECRET = "sua_chave_secreta"; // Altere para uma chave segura e armazene em variáveis de ambiente!
+const SECRET_KEY = "sua_chave_secreta"; // Altere para uma chave segura e armazene em variáveis de ambiente!
 
 
 const authController = {
