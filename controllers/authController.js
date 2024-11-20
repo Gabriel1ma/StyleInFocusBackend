@@ -19,7 +19,7 @@ const authController = {
                 return res.status(400).json({ success: false, message: "E-mail já cadastrado." });
             }
 
-            const profileImage = req.file ? '/paginas/login/uploads/' + req.file.filename : null;
+            const profileImage = req.file ? 'frontend/paginas/login/uploads/' + req.file.filename : null;
             await User.create(username, email, password, profileImage);
             res.json({ success: true, message: "Usuário cadastrado com sucesso." });
         } catch (error) {
@@ -32,26 +32,32 @@ const authController = {
         const { email, password } = req.body;
     
         try {
+            console.log(`Tentando login com o email: ${email}`);
             const user = await User.findByEmail(email);
+    
             if (!user) {
+                console.log('Usuário não encontrado');
                 return res.status(401).json({ success: false, message: 'Credenciais inválidas.' });
             }
     
             const match = await bcrypt.compare(password, user.password);
             if (!match) {
+                console.log('Senha não corresponde');
                 return res.status(401).json({ success: false, message: 'Credenciais inválidas.' });
             }
     
-            // Gerar token JWT com informações do usuário
+            // Gerar token JWT
             const token = jwt.sign(
                 { userId: user.user_id, username: user.username },
                 SECRET_KEY,
-                { expiresIn: '15m' } // Expira em 15 minutos
+                { expiresIn: '15m' }
             );
     
+            console.log('Token gerado:', token);
+    
             const profileImagePath = user.profile_image
-                ? `/paginas/login/uploads/${user.profile_image}`
-                : '/paginas/login/uploads/usuarioDefault.jpg';
+                ? `frontend/paginas/login/uploads/${user.profile_image}`
+                : 'frontend/paginas/login/uploads/usuarioDefault.jpg';
     
             return res.json({
                 success: true,
@@ -62,10 +68,10 @@ const authController = {
             });
         } catch (error) {
             console.error('Erro ao fazer login:', error.message);
-            res.status(500).json({ success: false, message: 'Erro interno no servidor.' });
+            return res.status(500).json({ success: false, message: 'Erro interno no servidor.' });
         }
-    },    
-
+    },
+    
     async forgotPassword(req, res) {
         const { email } = req.body;
         try {
