@@ -6,6 +6,8 @@ const multer = require('multer');
 const path = require('path');
 const jwt = require('jsonwebtoken');
 
+const SECRET_KEY = "sua_chave_secreta"; // Altere para uma chave segura e armazene em variáveis de ambiente!
+
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         cb(null, path.join(__dirname, '../../frontend/paginas/login/uploads'));
