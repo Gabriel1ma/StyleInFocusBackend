@@ -74,12 +74,13 @@ const authController = {
     
     async forgotPassword(req, res) {
         const { email } = req.body;
+        console.log("Email recebido:", email); // Verificar se o email foi recebido corretamente
         try {
             const user = await User.findByEmail(email);
             if (!user) {
                 return res.status(400).send('E-mail não encontrado');
             }
-
+            
             const token = crypto.randomBytes(20).toString('hex');
             await User.setResetToken(email, token);
 
