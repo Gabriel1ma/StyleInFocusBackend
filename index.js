@@ -35,6 +35,7 @@ const authenticateToken = (req, res, next) => {
 
 // Configuração de arquivos estáticos
 app.use(express.static(path.join(__dirname, 'frontend')));
+app.use(express.urlencoded({ extended: true }));
 
 // Rotas
 app.use('/auth', authRoutes);

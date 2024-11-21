@@ -71,19 +71,22 @@ const authController = {
             return res.status(500).json({ success: false, message: 'Erro interno no servidor.' });
         }
     },
+
     
-    async forgotPassword(req, res) {
+    async forgotPassword(req, res) { 
+        console.log("Corpo recebido no req.body:", req.body);
         const { email } = req.body;
         console.log("Email recebido:", email); // Verificar se o email foi recebido corretamente
+    
         try {
             const user = await User.findByEmail(email);
             if (!user) {
-                return res.status(400).send('E-mail não encontrado');
+                return res.json({ success: false, message: 'E-mail não registrado' });
             }
-            
+    
             const token = crypto.randomBytes(20).toString('hex');
             await User.setResetToken(email, token);
-
+    
             const transporter = nodemailer.createTransport({
                 service: 'gmail',
                 auth: {
@@ -91,21 +94,23 @@ const authController = {
                     pass: 'eihb vqrf byzw qzyt',
                 },
             });
-
-            const resetLink = `http://localhost:3000/reset-password?token=${token}`;
+    
+            const resetLink = `http://localhost:3000/frontend/paginas/login/reset-password.html?token=${token}`;
             const mailOptions = {
                 to: email,
                 subject: 'Recuperação de Senha',
                 text: `Você solicitou a recuperação de senha. Clique no link abaixo para redefinir sua senha: \n\n${resetLink}`,
             };
-
+    
             await transporter.sendMail(mailOptions);
-            res.send('E-mail enviado com instruções para recuperação de senha');
+            res.json({ success: true, message: 'E-mail enviado com instruções para recuperação de senha' });
         } catch (error) {
             console.error(error);
-            res.status(500).send('Erro ao processar a solicitação');
+            res.json({ success: false, message: 'Erro ao processar a solicitação' });
         }
     },
+    
+    
 
     async resetPassword(req, res) {
         const { token, newPassword } = req.body;
