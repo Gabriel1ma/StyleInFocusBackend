@@ -58,6 +58,7 @@ router.post('/login', authController.login);
 router.post('/forgot-password', authController.forgotPassword);
 router.post('/reset-password', authController.resetPassword);
 router.post('/update', upload.single('profile_image'), authenticateToken, authController.update);
+router.post('/logout', authenticateToken, authController.logout);
 
 // Rota de API para pegar dados do usuário
 router.get('/api/user', authenticateToken, (req, res) => {

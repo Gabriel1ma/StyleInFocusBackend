@@ -72,6 +72,15 @@ const authController = {
         }
     },
 
+    async logout(req, res) {
+        try {
+            // Invalida o token no frontend. No backend, apenas retorna sucesso.
+            res.json({ success: true, message: 'Logout bem-sucedido.' });
+        } catch (error) {
+            console.error('Erro no logout:', error);
+            res.status(500).json({ success: false, message: 'Erro ao realizar logout.' });
+        }
+    },
     
     async forgotPassword(req, res) { 
         console.log("Corpo recebido no req.body:", req.body);
