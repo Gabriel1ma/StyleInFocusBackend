@@ -82,10 +82,10 @@ const authController = {
         }
     },
     
-    async forgotPassword(req, res) { 
+    async forgotPassword(req, res) {
         console.log("Corpo recebido no req.body:", req.body);
         const { email } = req.body;
-        console.log("Email recebido:", email); // Verificar se o email foi recebido corretamente
+        console.log("Email recebido:", email);
     
         try {
             const user = await User.findByEmail(email);
@@ -104,11 +104,44 @@ const authController = {
                 },
             });
     
-            const resetLink = `http://localhost:3000/frontend/paginas/login/reset-password.html?token=${token}`;
+            const resetLink = `http://127.0.0.1:5501/frontend/paginas/login/reset-password.html?token=${token}`;
+            const userName = user.username || "Usuário"; // Supondo que o nome do usuário seja armazenado como 'name'
+    
             const mailOptions = {
                 to: email,
-                subject: 'Recuperação de Senha',
-                text: `Você solicitou a recuperação de senha. Clique no link abaixo para redefinir sua senha: \n\n${resetLink}`,
+                subject: 'Redefinição de Senha - Style in Focus',
+                text: `Olá, ${userName}!
+                
+            Recebemos sua solicitação de redefinição de senha. Clique no link abaixo para criar uma nova senha:
+            ${resetLink}
+            
+            Se você não fez esta solicitação, ignore este e-mail.
+            Equipe Style in Focus`,
+                html: `
+                    <div style="font-family: 'Arial', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9; border-radius: 10px;">
+                        <div style="text-align: center; padding: 20px 0; background-color: #007BFF; border-radius: 10px 10px 0 0;">
+                            <h1 style="color: #fff; font-size: 24px; margin: 0;">Style in Focus</h1>
+                        </div>
+                        <div style="padding: 20px; background-color: #fff; border-radius: 0 0 10px 10px;">
+                            <h2 style="color: #333; font-size: 20px;">Olá, ${userName}!</h2>
+                            <p style="color: #555; font-size: 16px;">
+                                Recebemos uma solicitação para redefinir sua senha. Clique no botão abaixo para criar uma nova senha:
+                            </p>
+                            <div style="text-align: center; margin: 20px 0;">
+                                <a href="${resetLink}" 
+                                   style="display: inline-block; background-color: #007BFF; color: #fff; font-size: 16px; padding: 12px 20px; text-decoration: none; border-radius: 5px;">
+                                   Redefinir Senha
+                                </a>
+                            </div>
+                            <p style="color: #555; font-size: 14px;">
+                                Se você não fez essa solicitação, ignore este e-mail.
+                            </p>
+                            <p style="color: #999; font-size: 12px; text-align: center; margin-top: 20px;">
+                                Style in Focus - Personalize seu estilo com autenticidade.
+                            </p>
+                        </div>
+                    </div>
+                `,
             };
     
             await transporter.sendMail(mailOptions);
@@ -117,8 +150,7 @@ const authController = {
             console.error(error);
             res.json({ success: false, message: 'Erro ao processar a solicitação' });
         }
-    },
-    
+    },    
     
 
     async resetPassword(req, res) {
