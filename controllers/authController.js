@@ -50,7 +50,7 @@ const authController = {
             const token = jwt.sign(
                 { userId: user.user_id, username: user.username },
                 SECRET_KEY,
-                { expiresIn: '15m' }
+                { expiresIn: '1h' }
             );
     
             console.log('Token gerado:', token);
