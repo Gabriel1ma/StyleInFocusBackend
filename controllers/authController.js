@@ -154,18 +154,34 @@ const authController = {
     
 
     async resetPassword(req, res) {
-        const { token, newPassword } = req.body;
+        const { token, newPassword, confirmNewPassword } = req.body;
+    
+        if (!newPassword || !confirmNewPassword) {
+            return res.status(400).json({ success: false, message: "Preencha todos os campos." });
+        }
+    
+        if (newPassword !== confirmNewPassword) {
+            return res.status(400).json({ success: false, message: "As senhas não coincidem." });
+        }
+    
         try {
+            // Localiza o usuário com base no token
             const user = await User.findByToken(token);
+    
             if (!user) {
-                return res.status(400).send('Token inválido ou expirado');
+                return res.status(400).json({ success: false, message: "Token inválido ou expirado." });
             }
-
-            await User.resetPassword(token, newPassword);
-            res.send('Senha alterada com sucesso');
+    
+            // Criptografa a nova senha
+            const hashedPassword = await bcrypt.hash(newPassword, 10);
+    
+            // Atualiza a senha no banco de dados
+            await User.resetPassword(token, hashedPassword);
+    
+            return res.json({ success: true, message: "Senha alterada com sucesso." });
         } catch (error) {
-            console.error(error);
-            res.status(500).send('Erro ao processar a solicitação');
+            console.error('Erro ao redefinir senha:', error);
+            return res.status(500).json({ success: false, message: "Erro ao processar a solicitação." });
         }
     },
 
