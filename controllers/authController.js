@@ -110,6 +110,7 @@ const authController = {
             });
 
             const mailOptions = {
+                from: '"Style in Focus" <styleinfocuscontact@gmail.com>', // Exibe o nome da empresa e o e-mail
                 to: email,
                 subject: 'Redefinição de Senha - Style in Focus',
                 html: `
