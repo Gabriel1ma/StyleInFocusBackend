@@ -158,7 +158,7 @@ const authController = {
         
             try {
                 // Simula um delay de 2 segundos (2000 ms)
-                await new Promise(resolve => setTimeout(resolve, 2000));
+                await new Promise(resolve => setTimeout(resolve, 1000));
         
                 // Decodificar e verificar o token
                 const decoded = jwt.verify(token2, SECRET_KEY);
