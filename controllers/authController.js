@@ -98,7 +98,7 @@ const authController = {
                 { expiresIn: '1h' } // Token válido por 1 hora
             );
 
-            const resetLink = `http://127.0.0.1:5501/frontend/paginas/login/reset-password.html?token=${token2}`;
+            const resetLink = `https://styleinfocus.netlify.app/frontend/paginas/login/reset-password.html?token=${token2}`;
 
             // Configuração e envio do e-mail
             const transporter = nodemailer.createTransport({
