@@ -1,6 +1,7 @@
 const pool = require('../config/database');
 const bcrypt = require('bcryptjs'); // Substituindo o bcrypt por bcryptjs
 const crypto = require('crypto');
+
 const User = {
     findByEmail: async (email) => {
         const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
@@ -29,13 +30,12 @@ const User = {
         return result.rows[0];
     },
     setResetToken: async (email, token) => {
-        // Não definindo mais expiração, apenas armazenando o token
-        await pool.query('UPDATE users SET reset_token = $1 WHERE email = $2', [token, email]);
+        const expiration = new Date(Date.now() + 3600000); // 1 hora
+        await pool.query('UPDATE users SET reset_token = $1, reset_token_expiration = $2 WHERE email = $3', [token, expiration, email]);
     },
     resetPassword: async (token, newPassword) => {
         const hashedPassword = await bcrypt.hash(newPassword, 10); // Usando bcryptjs
-        // Após o reset, remover o token
-        await pool.query('UPDATE users SET password = $1, reset_token = NULL WHERE reset_token = $2', [hashedPassword, token]);
+        await pool.query('UPDATE users SET password = $1, reset_token = NULL, reset_token_expiration = NULL WHERE reset_token = $2', [hashedPassword, token]);
     }
 };
 

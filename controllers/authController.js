@@ -158,18 +158,16 @@ const authController = {
         try {
             const user = await User.findByToken(token);
             if (!user) {
-                return res.status(400).send('Token inválido');
+                return res.status(400).send('Token inválido ou expirado');
             }
-    
-            // Atualizar a senha do usuário sem expiração
+
             await User.resetPassword(token, newPassword);
             res.send('Senha alterada com sucesso');
         } catch (error) {
             console.error(error);
             res.status(500).send('Erro ao processar a solicitação');
         }
-    }
-    ,
+    },
 
     async update(req, res) {
         const { username, email, senhaAtual, novaSenha, confirmacaoNovaSenha } = req.body;
