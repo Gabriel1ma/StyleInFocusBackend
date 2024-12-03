@@ -33,9 +33,9 @@ const User = {
         const expiration = new Date(Date.now() + 3600000); // 1 hora
         await pool.query('UPDATE users SET reset_token = $1, reset_token_expiration = $2 WHERE email = $3', [token, expiration, email]);
     },
-    resetPassword: async (token, newPassword) => {
-        const hashedPassword = await bcrypt.hash(newPassword, 10); // Usando bcryptjs
-        await pool.query('UPDATE users SET password = $1, reset_token = NULL, reset_token_expiration = NULL WHERE reset_token = $2', [hashedPassword, token]);
+    updatePassword: async (userId, newPassword) => {
+        const result = await pool.query('UPDATE users SET password = $1 WHERE user_id = $2', [newPassword, userId]);
+        return result.rowCount;  // Retorna o número de linhas afetadas
     }
 };
 
