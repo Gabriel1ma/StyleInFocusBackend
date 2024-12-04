@@ -83,111 +83,112 @@ const authController = {
     },
     
     async forgotPassword(req, res) {
-            const { email } = req.body;
-    
-            try {
-                const user = await User.findByEmail(email);
-                if (!user) {
-                    return res.status(404).json({ success: false, message: 'E-mail não registrado.' });
-                }
-    
-                // Geração do token JWT
-                const token2 = jwt.sign(
-                    { userId: user.user_id, email: user.email },
-                    SECRET_KEY,
-                    { expiresIn: '1h' } // Token válido por 1 hora
-                );
-    
-                const resetLink = `http://127.0.0.1:5501/frontend/paginas/login/reset-password.html?token=${token2}`;
-    
-                // Configuração e envio do e-mail
-                const transporter = nodemailer.createTransport({
-                    service: 'gmail',
-                    auth: {
-                        user: 'styleinfocuscontact@gmail.com',
-                        pass: 'eihb vqrf byzw qzyt', // Substituir por variável de ambiente!
-                    },
-                });
-    
-                const mailOptions = {
-                    to: email,
-                    subject: 'Redefinição de Senha - Style in Focus',
-                    html: `
-                        <div style="font-family: 'Arial', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9; border-radius: 10px;">
-                            <div style="text-align: center; padding: 20px 0; background-color: #007BFF; border-radius: 10px 10px 0 0;">
-                                <h1 style="color: #fff; font-size: 24px; margin: 0;">Style in Focus</h1>
-                            </div>
-                            <div style="padding: 20px; background-color: #fff; border-radius: 0 0 10px 10px;">
-                                <h2 style="color: #333; font-size: 20px;">Olá, ${user.username || 'Usuário'}!</h2>
-                                <p style="color: #555; font-size: 16px;">
-                                    Recebemos uma solicitação para redefinir sua senha. Clique no botão abaixo para criar uma nova senha:
-                                </p>
-                                <div style="text-align: center; margin: 20px 0;">
-                                    <a href="${resetLink}" 
-                                       style="display: inline-block; background-color: #007BFF; color: #fff; font-size: 16px; padding: 12px 20px; text-decoration: none; border-radius: 5px;">
-                                       Redefinir Senha
-                                    </a>
-                                </div>
-                                <p style="color: #555; font-size: 14px;">
-                                    Se você não fez essa solicitação, ignore este e-mail.
-                                </p>
-                                <p style="color: #999; font-size: 12px; text-align: center; margin-top: 20px;">
-                                    Style in Focus - Personalize seu estilo com autenticidade.
-                                </p>
-                            </div>
+        const { email } = req.body;
+
+        try {
+            const user = await User.findByEmail(email);
+            if (!user) {
+                return res.status(404).json({ success: false, message: 'E-mail não registrado.' });
+            }
+
+            // Geração do token JWT
+            const token2 = jwt.sign(
+                { userId: user.user_id, email: user.email },
+                SECRET_KEY,
+                { expiresIn: '1h' } // Token válido por 1 hora
+            );
+
+            const resetLink = `https://styleinfocus.netlify.app/frontend/paginas/login/reset-password.html?token=${token2}`;
+
+            // Configuração e envio do e-mail
+            const transporter = nodemailer.createTransport({
+                service: 'gmail',
+                auth: {
+                    user: 'styleinfocuscontact@gmail.com',
+                    pass: 'eihb vqrf byzw qzyt', // Substituir por variável de ambiente!
+                },
+            });
+
+            const mailOptions = {
+                from: '"Style in Focus" <styleinfocuscontact@gmail.com>', // Exibe o nome da empresa e o e-mail
+                to: email,
+                subject: 'Redefinição de Senha - Style in Focus',
+                html: `
+                    <div style="font-family: 'Arial', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9; border-radius: 10px;">
+                        <div style="text-align: center; padding: 20px 0; background-color: #007BFF; border-radius: 10px 10px 0 0;">
+                            <h1 style="color: #fff; font-size: 24px; margin: 0;">Style in Focus</h1>
                         </div>
-                    `
-                };
-                
+                        <div style="padding: 20px; background-color: #fff; border-radius: 0 0 10px 10px;">
+                            <h2 style="color: #333; font-size: 20px;">Olá, ${user.username || 'Usuário'}!</h2>
+                            <p style="color: #555; font-size: 16px;">
+                                Recebemos uma solicitação para redefinir sua senha. Clique no botão abaixo para criar uma nova senha:
+                            </p>
+                            <div style="text-align: center; margin: 20px 0;">
+                                <a href="${resetLink}" 
+                                   style="display: inline-block; background-color: #007BFF; color: #fff; font-size: 16px; padding: 12px 20px; text-decoration: none; border-radius: 5px;">
+                                   Redefinir Senha
+                                </a>
+                            </div>
+                            <p style="color: #555; font-size: 14px;">
+                                Se você não fez essa solicitação, ignore este e-mail.
+                            </p>
+                            <p style="color: #999; font-size: 12px; text-align: center; margin-top: 20px;">
+                                Style in Focus - Personalize seu estilo com autenticidade.
+                            </p>
+                        </div>
+                    </div>
+                `
+            };
+            
+
+            await transporter.sendMail(mailOptions);
+
+            res.json({ success: true, message: 'E-mail enviado com instruções para recuperação de senha.' });
+        } catch (error) {
+            console.error('Erro no forgotPassword:', error);
+            res.status(500).json({ success: false, message: 'Erro ao processar a solicitação.' });
+        }
+    },
+
+    async resetPassword(req, res) {
+        const token2 = req.headers['authorization']?.split(' ')[1];
     
-                await transporter.sendMail(mailOptions);
+        if (!token2) {
+            return res.status(400).json({ success: false, message: 'Token não fornecido.' });
+        }
     
-                res.json({ success: true, message: 'E-mail enviado com instruções para recuperação de senha.' });
-            } catch (error) {
-                console.error('Erro no forgotPassword:', error);
-                res.status(500).json({ success: false, message: 'Erro ao processar a solicitação.' });
-            }
-        },
+        try {
+            // Simula um delay de 2 segundos (2000 ms)
+            await new Promise(resolve => setTimeout(resolve, 1000));
     
-        async resetPassword(req, res) {
-            const token2 = req.headers['authorization']?.split(' ')[1];
-        
-            if (!token2) {
-                return res.status(400).json({ success: false, message: 'Token não fornecido.' });
+            // Decodificar e verificar o token
+            const decoded = jwt.verify(token2, SECRET_KEY);
+    
+            const user = await User.findByEmail(decoded.email);
+            if (!user) {
+                return res.status(404).json({ success: false, message: 'Usuário não encontrado.' });
             }
-        
-            try {
-                // Simula um delay de 2 segundos (2000 ms)
-                await new Promise(resolve => setTimeout(resolve, 1000));
-        
-                // Decodificar e verificar o token
-                const decoded = jwt.verify(token2, SECRET_KEY);
-        
-                const user = await User.findByEmail(decoded.email);
-                if (!user) {
-                    return res.status(404).json({ success: false, message: 'Usuário não encontrado.' });
-                }
-        
-                const { newPassword } = req.body;
-        
-                if (!newPassword) {
-                    return res.status(400).json({ success: false, message: 'Nova senha não fornecida.' });
-                }
-        
-                const hashedPassword = await bcrypt.hash(newPassword, 10);
-                await User.updatePassword(user.user_id, hashedPassword);
-        
-                res.json({ success: true, message: 'Senha alterada com sucesso.' });
-            } catch (error) {
-                console.error('Erro no resetPassword:', error);
-        
-                if (error.name === 'TokenExpiredError') {
-                    return res.status(400).json({ success: false, message: 'Token expirado.' });
-                }
-        
-                return res.status(400).json({ success: false, message: 'Token inválido ou expirado.' });
+    
+            const { newPassword } = req.body;
+    
+            if (!newPassword) {
+                return res.status(400).json({ success: false, message: 'Nova senha não fornecida.' });
             }
-        },        
+    
+            const hashedPassword = await bcrypt.hash(newPassword, 10);
+            await User.updatePassword(user.user_id, hashedPassword);
+    
+            res.json({ success: true, message: 'Senha alterada com sucesso.' });
+        } catch (error) {
+            console.error('Erro no resetPassword:', error);
+    
+            if (error.name === 'TokenExpiredError') {
+                return res.status(400).json({ success: false, message: 'Token expirado.' });
+            }
+    
+            return res.status(400).json({ success: false, message: 'Token inválido ou expirado.' });
+        }
+    },      
 
     async update(req, res) {
         const { username, email, senhaAtual, novaSenha, confirmacaoNovaSenha } = req.body;
